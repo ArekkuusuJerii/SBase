@@ -5,22 +5,22 @@ import Implicits._
 import scala.collection.mutable
 
 object Repository {
-  def update(connection: Connection, sequence: String, data: Seq[_]): Unit = {
+  def update(connection: Connection, sequence: String, data: Seq[AnyRef]): Unit = {
     val statement = connection.prepareStatement(sequence)
     statement.setIn(data)
     statement.executeUpdate
     statement.close()
   }
 
-  def query(connection: Connection, sequence: String, data: Seq[_])(f: Map[String, _] => Unit): Unit = {
+  def query(connection: Connection, sequence: String, data: Seq[AnyRef])(f: Map[String, AnyRef] => Unit): Unit = {
     val statement = connection.prepareStatement(sequence)
     statement.setIn(data)
     statement.execute(f)
     statement.close()
   }
 
-  def call(connection: Connection, sequence: String, in: Map[String, _], out: Map[String, SQLType])(
-      f: Map[String, _] => Unit
+  def call(connection: Connection, sequence: String, in: Map[String, AnyRef], out: Map[String, SQLType])(
+      f: Map[String, AnyRef] => Unit
   ): Unit = {
     def collectOutputs(statement: CallableStatement): Unit = {
       val map = mutable.Map[String, AnyRef]()
