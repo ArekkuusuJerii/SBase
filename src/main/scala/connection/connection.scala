@@ -5,10 +5,9 @@ package connection {
   case class Info(ip: String, port: Int, database: String, user: String = _, password: String = _)
 
   case class Driver(format: String, info: Info = _) {
-    def withInfo(info: Info): Driver = copy(info = info)
+    private[connection] def copy(format: String = format, info: Info = info) = new Driver(format, info)
 
-    def copy(format: String = format, info: Info = info) =
-      new Driver(format, info)
+    def withInfo(info: Info): Driver = copy(info = info)
 
     def open() = Option.apply(
       DriverManager getConnection (String format (format, info.ip, info.port, info.database), info.user, info.password)
