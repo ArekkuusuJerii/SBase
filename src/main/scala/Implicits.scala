@@ -50,4 +50,13 @@ object Implicits {
     }
   }
 
+  implicit class RichMap(val m: Map[String, AnyRef]) extends AnyVal {
+    import scala.reflect.ClassTag
+
+    def <--[A](key: String, or: A = _)(implicit tag: ClassTag[A]): A = m.get(key) match {
+      case Some(any: A) => any
+      case _            => or
+    }
+  }
+
 }
