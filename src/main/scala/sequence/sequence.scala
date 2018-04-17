@@ -15,39 +15,42 @@ package sequence {
       this
     }
 
-    def <(from: String*): Self = {
+    def from(from: String*): Self = {
       seq ++= from.mkString(" FROM ", ",", "")
       this
     }
 
-    def -(join: String): Self = {
+    def join(join: String): Self = {
       seq ++= s" JOIN $join"
       this
     }
 
-    def --(innerJoin: String): Self = {
+    def innerjoin(innerJoin: String): Self = {
       seq ++= s" INNER JOIN $innerJoin"
       this
     }
 
-    def |-(leftJoin: String): Self = {
+    def leftjoin(leftJoin: String): Self = {
       seq ++= s" LEFT JOIN $leftJoin"
       this
     }
 
-    def -|(rightJoin: String): Self = {
+    def rightjoin(rightJoin: String): Self = {
       seq ++= s" RIGHT JOIN $rightJoin"
       this
     }
 
-    def ?(condition: Condition): Self = {
-      if (hasCondition && condition != Condition.On) seq += ','
-      else if (condition == Condition.Where) hasCondition = true
-      seq ++= " " ++= condition.toString
+    def on(condition: Condition): Self = {
+      seq ++= " ON " ++= condition.toString
       this
     }
 
-    def >(): String = seq.toString()
+    def when(condition: Condition): Self = {
+      seq ++= " WHERE " ++= condition.toString
+      this
+    }
+
+    def end(): String = seq.toString()
   }
   object Statement {
     val Select = new Statement("SELECT")
@@ -55,37 +58,21 @@ package sequence {
     val Delete = new Statement("DELETE")
   }
 
-  case class Condition(condition: String, value: String = _, check: String = _) {
-    def copy(condition: String = condition, value: String = value, check: String = check) =
-      new Condition(condition, value, check)
+  case class Condition(value: String = _, check: String = _) {
+    type Self = Condition
+    val seq = new StringBuilder(s"$value $check")
 
-    def ->(s: String): Condition = copy(value = s)
+    def and(condition: Condition): Self = {
+      seq ++= s" AND ${condition.value} ${condition.check}"
+      this
+    }
 
-    def ==(s: String = "?"): Condition = copy(check = "= " + s)
+    def or(condition: Condition): Self = {
+      seq ++= s" OR ${condition.value} ${condition.check}"
+      this
+    }
 
-    def >(s: String = "?"): Condition = copy(check = "> " + s)
-
-    def <(s: String = "?"): Condition = copy(check = "< " + s)
-
-    def >=(s: String = "?"): Condition = copy(check = ">= " + s)
-
-    def <=(s: String = "?"): Condition = copy(check = "<= " + s)
-
-    def <>(s: String = "?"): Condition = copy(check = "<> " + s)
-
-    def like(s: String = "?"): Condition = copy(check = "like " + s)
-
-    def notNull: Condition = copy(check = " NOT NULL")
-
-    def isNull: Condition = copy(check = " IS NULL")
-
-    override def toString: String = s"$condition $value $check"
-  }
-  object Condition {
-    val Where = new Condition("WHERE")
-    val &&    = new Condition("&&")
-    val ||    = new Condition("||")
-    val On    = new Condition("ON")
+    override def toString: String = seq.toString()
   }
 
 }

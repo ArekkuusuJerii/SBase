@@ -1,5 +1,7 @@
 import java.sql.{CallableStatement, Connection, PreparedStatement, SQLType}
 
+import sequence.Condition
+
 import scala.collection.mutable
 
 object Implicits {
@@ -51,12 +53,45 @@ object Implicits {
   }
 
   implicit class RichMap(val m: Map[String, AnyRef]) extends AnyVal {
+
     import scala.reflect.ClassTag
 
     def <--[A](key: String, or: A = _)(implicit tag: ClassTag[A]): A = m.get(key) match {
       case Some(any: A) => any
       case _            => or
     }
+  }
+
+  implicit class RichStatementString(val s: String) extends AnyVal {
+    def ===(check: AnyVal = _): Condition = ===(s"'$check'")
+
+    def ===(check: String = "?"): Condition = ->("= " + check)
+
+    def !==(check: AnyVal = _): Condition = !==(s"'$check'")
+
+    def !==(check: String = "?"): Condition = ->("<> " + check)
+
+    def >>(check: AnyVal = _): Condition = >>(s"'$check'")
+
+    def >>(check: String = "?"): Condition = ->("> " + check)
+
+    def <<(check: AnyVal = _): Condition = <<(s"'$check'")
+
+    def <<(check: String = "?"): Condition = ->("< " + check)
+
+    def ->(check: String) = Condition(s, check)
+
+    def <==(check: AnyVal = _): Condition = <==(s"'$check'")
+
+    def <==(check: String = "?"): Condition = ->(">= " + check)
+
+    def ==>(check: AnyVal = _): Condition = ==>(s"'$check'")
+
+    def ==>(check: String = "?"): Condition = ->("<= " + check)
+
+    def notNull: Condition = ->(" NOT NULL")
+
+    def isNull: Condition = ->(" IS NULL")
   }
 
 }
