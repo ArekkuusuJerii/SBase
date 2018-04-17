@@ -2,7 +2,8 @@ package sequence {
 
   case class Statement(statement: String) {
     type Self = Statement
-    val seq = new StringBuilder
+    val seq          = new StringBuilder
+    var hasCondition = false
 
     def =+(statement: String): Self = {
       seq ++= " " ++= statement
@@ -15,7 +16,7 @@ package sequence {
     }
 
     def <(from: String*): Self = {
-      seq ++= from.mkString(" ", ",", " ")
+      seq ++= from.mkString(" FROM ", ",", "")
       this
     }
 
@@ -39,8 +40,10 @@ package sequence {
       this
     }
 
-    def ?(conditions: List[Condition]): Self = {
-      seq ++= " WHERE " ++= conditions.mkString(",")
+    def ?(condition: Condition): Self = {
+      if (hasCondition && condition != Condition.On) seq += ','
+      else if (condition == Condition.Where) hasCondition = true
+      seq ++= " " ++= condition.toString
       this
     }
 
@@ -79,8 +82,10 @@ package sequence {
     override def toString: String = s"$condition $value $check"
   }
   object Condition {
-    val && = new Condition("&&")
-    val || = new Condition("||")
+    val Where = new Condition("WHERE")
+    val &&    = new Condition("&&")
+    val ||    = new Condition("||")
+    val On    = new Condition("ON")
   }
 
 }
