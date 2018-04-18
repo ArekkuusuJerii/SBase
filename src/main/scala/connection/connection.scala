@@ -2,9 +2,9 @@ package connection {
 
   import java.sql.DriverManager
 
-  case class Info(ip: String, port: Int, database: String, user: String = _, password: String = _)
+  case class Info(ip: String, port: String, database: String, user: String = null, password: String = null)
 
-  case class Driver(format: String, info: Info = _) {
+  case class Driver(format: String, info: Info = null) {
     private[connection] def copy(format: String = format, info: Info = info) = new Driver(format, info)
 
     def withInfo(info: Info): Driver = copy(info = info)
