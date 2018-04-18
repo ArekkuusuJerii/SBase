@@ -58,7 +58,7 @@ package sequence {
     val Delete = new Statement("DELETE")
   }
 
-  case class Condition(value: String = _, check: String = _) {
+  case class Condition(value: String, check: String = "") {
     type Self = Condition
     val seq = new StringBuilder(s"$value $check")
 
