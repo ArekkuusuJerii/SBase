@@ -24,7 +24,7 @@ object Repository {
   ): Unit = {
     def collectOutputs(statement: CallableStatement): Unit = {
       val map = mutable.Map[String, AnyRef]()
-      out.keySet foreach (param => map += (param -> statement.getObject(param)))
+      out.keySet foreach (param => map += param -> statement.getObject(param))
       f(map.toMap)
     }
 
