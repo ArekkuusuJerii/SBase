@@ -19,12 +19,12 @@ object Repository {
     statement.close()
   }
 
-  def call(connection: Connection, sequence: String, in: Map[String, AnyRef], out: Map[String, SQLType])(
+  def call(connection: Connection, sequence: String, in: Map[String, AnyRef], out: Map[String, Int])(
       f: Map[String, AnyRef] => Unit
   ): Unit = {
     def collectOutputs(statement: CallableStatement): Unit = {
       val map = mutable.Map[String, AnyRef]()
-      out.keySet foreach (param => map += param -> statement.getObject(param))
+      out.keySet foreach (param => map update (param, statement.getObject(param)))
       f(map.toMap)
     }
 

@@ -17,7 +17,7 @@ object Implicits {
     def query(s: String, seq: Seq[AnyRef] = Seq.empty)(f: Map[String, AnyRef] => Unit): Unit =
       Repository.query(c, s, seq)(f)
 
-    def call(s: String, in: Map[String, AnyRef] = Map.empty, out: Map[String, SQLType] = Map.empty)(
+    def call(s: String, in: Map[String, AnyRef] = Map.empty, out: Map[String, Int] = Map.empty)(
         f: Map[String, AnyRef] => Unit
     ): Unit = Repository.call(c, s, in, out)(f)
   }
@@ -38,7 +38,7 @@ object Implicits {
             for (column <- 1 to columns) {
               val name  = metaData.getColumnName(column)
               val value = result.getObject(column)
-              map += name -> value
+              map update (name, value)
             }
             f(map.toMap)
           }
@@ -49,7 +49,7 @@ object Implicits {
   }
 
   implicit class RichCallStatement[Statement <: CallableStatement](val s: Statement) extends AnyVal {
-    def setOut(out: Map[String, SQLType]): Unit = out foreach {
+    def setOut(out: Map[String, Int]): Unit = out foreach {
       case (param, sqlType) => s.registerOutParameter(param, sqlType)
     }
 
