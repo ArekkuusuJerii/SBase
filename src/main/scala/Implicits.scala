@@ -3,13 +3,19 @@ import java.sql.{CallableStatement, Connection, PreparedStatement, SQLType}
 import sequence.Condition
 
 import scala.collection.mutable
+import scala.reflect.ClassTag
 
 object Implicits {
 
-  implicit class RichConnection(val c: Connection) extends AnyVal {
-    def update(s: String): Unit = Repository.update(c, s, Seq())
+  implicit class RichOption[A](val o: Option[A]) extends AnyVal {
+    def ->(f: A => Unit)(implicit tag: ClassTag[A]): Unit = if (o.nonEmpty) f(o.get)
+  }
 
-    def query(s: String)(f: Map[String, AnyRef] => Unit): Unit = Repository.query(c, s, Seq())(f)
+  implicit class RichConnection(val c: Connection) extends AnyVal {
+    def update(s: String, seq: Seq[AnyRef] = Seq.empty): Unit = Repository.update(c, s, seq)
+
+    def query(s: String, seq: Seq[AnyRef] = Seq.empty)(f: Map[String, AnyRef] => Unit): Unit =
+      Repository.query(c, s, seq)(f)
 
     def call(s: String, in: Map[String, AnyRef] = Map.empty, out: Map[String, SQLType] = Map.empty)(
         f: Map[String, AnyRef] => Unit
@@ -54,40 +60,38 @@ object Implicits {
 
   implicit class RichMap(val m: Map[String, AnyRef]) extends AnyVal {
 
-    import scala.reflect.ClassTag
-
-    def <--[A](key: String, or: A = _)(implicit tag: ClassTag[A]): A = m.get(key) match {
+    def <--[A](key: String, or: A)(implicit tag: ClassTag[A]): A = m.get(key) match {
       case Some(any: A) => any
       case _            => or
     }
   }
 
   implicit class RichStatementString(val s: String) extends AnyVal {
-    def ===(check: AnyVal = _): Condition = ===(s"'$check'")
+    def ===(check: AnyVal): Condition = ===(s"'$check'")
 
     def ===(check: String = "?"): Condition = ->("= " + check)
 
-    def !==(check: AnyVal = _): Condition = !==(s"'$check'")
+    def <>(check: AnyVal): Condition = <>(s"'$check'")
 
-    def !==(check: String = "?"): Condition = ->("<> " + check)
+    def <>(check: String = "?"): Condition = ->("<> " + check)
 
-    def >>(check: AnyVal = _): Condition = >>(s"'$check'")
+    def >>(check: AnyVal): Condition = >>(s"'$check'")
 
     def >>(check: String = "?"): Condition = ->("> " + check)
 
-    def <<(check: AnyVal = _): Condition = <<(s"'$check'")
+    def <<(check: AnyVal): Condition = <<(s"'$check'")
 
     def <<(check: String = "?"): Condition = ->("< " + check)
 
     def ->(check: String) = Condition(s, check)
 
-    def <==(check: AnyVal = _): Condition = <==(s"'$check'")
+    def <<:(check: AnyVal): Condition = <<:(s"'$check'")
 
-    def <==(check: String = "?"): Condition = ->(">= " + check)
+    def <<:(check: String = "?"): Condition = ->(">= " + check)
 
-    def ==>(check: AnyVal = _): Condition = ==>(s"'$check'")
+    def :>>(check: AnyVal): Condition = :>>(s"'$check'")
 
-    def ==>(check: String = "?"): Condition = ->("<= " + check)
+    def :>>(check: String = "?"): Condition = ->("<= " + check)
 
     def notNull: Condition = ->(" NOT NULL")
 
